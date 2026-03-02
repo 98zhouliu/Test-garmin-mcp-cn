@@ -17,7 +17,7 @@ export GARMIN_IS_CN=true
 ### 认证（首次使用）
 
 ```bash
-GARMIN_IS_CN=true uvx --python 3.12 --from git+https://github.com/bifeiwang-hub/garmin-mcp-cn garmin-mcp-auth
+GARMIN_IS_CN=true uvx --python 3.12 --from git+https://github.com/BorisBW/garmin-mcp-cn garmin-mcp-auth
 ```
 
 ### Claude Desktop 配置
@@ -29,7 +29,7 @@ GARMIN_IS_CN=true uvx --python 3.12 --from git+https://github.com/bifeiwang-hub/
       "command": "uvx",
       "args": [
         "--python", "3.12",
-        "--from", "git+https://github.com/bifeiwang-hub/garmin-mcp-cn",
+        "--from", "git+https://github.com/BorisBW/garmin-mcp-cn",
         "garmin-mcp"
       ],
       "env": {
@@ -51,7 +51,7 @@ GARMIN_IS_CN=true uvx --python 3.12 --from git+https://github.com/bifeiwang-hub/
       "command": "uvx",
       "args": [
         "--python", "3.12",
-        "--from", "git+https://github.com/bifeiwang-hub/garmin-mcp-cn",
+        "--from", "git+https://github.com/BorisBW/garmin-mcp-cn",
         "garmin-mcp"
       ],
       "env": {
