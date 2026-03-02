@@ -122,7 +122,8 @@ def authenticate(token_path: str, token_base64_path: str, force_reauth: bool = F
     print(f"Email: {email}")
 
     try:
-        garmin = Garmin(email=email, password=password, is_cn=False, prompt_mfa=get_mfa)
+        is_cn = os.getenv("GARMIN_IS_CN", "").lower() in ("true", "1", "yes")
+        garmin = Garmin(email=email, password=password, is_cn=is_cn, prompt_mfa=get_mfa)
         garmin.login()
 
         # Save tokens to directory

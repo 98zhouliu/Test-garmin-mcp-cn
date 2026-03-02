@@ -1,6 +1,70 @@
 [![MseeP.ai Security Assessment Badge](https://mseep.net/pr/taxuspt-garmin-mcp-badge.png)](https://mseep.ai/app/taxuspt-garmin-mcp)
 
-# Garmin MCP Server
+# Garmin MCP Server (China / 中国区支持)
+
+> **This is a fork of [Taxuspt/garmin_mcp](https://github.com/Taxuspt/garmin_mcp) with Garmin China (`garmin.cn`) support.**
+>
+> The original MCP server hardcodes `is_cn=False`, which means it only works with the global Garmin Connect (`connect.garmin.com`). This fork adds a `GARMIN_IS_CN` environment variable so users on Garmin China can connect to `connect.garmin.cn` instead.
+
+## 🇨🇳 中国区用户
+
+如果你的 Garmin 账号注册在佳明中国（`garmin.cn`），只需要设置一个环境变量：
+
+```bash
+export GARMIN_IS_CN=true
+```
+
+### 认证（首次使用）
+
+```bash
+GARMIN_IS_CN=true uvx --python 3.12 --from git+https://github.com/bifeiwang-hub/garmin-mcp-cn garmin-mcp-auth
+```
+
+### Claude Desktop 配置
+
+```json
+{
+  "mcpServers": {
+    "garmin": {
+      "command": "uvx",
+      "args": [
+        "--python", "3.12",
+        "--from", "git+https://github.com/bifeiwang-hub/garmin-mcp-cn",
+        "garmin-mcp"
+      ],
+      "env": {
+        "GARMIN_IS_CN": "true"
+      }
+    }
+  }
+}
+```
+
+### Claude Code 配置
+
+在 `~/.claude/settings.json` 中添加：
+
+```json
+{
+  "mcpServers": {
+    "garmin": {
+      "command": "uvx",
+      "args": [
+        "--python", "3.12",
+        "--from", "git+https://github.com/bifeiwang-hub/garmin-mcp-cn",
+        "garmin-mcp"
+      ],
+      "env": {
+        "GARMIN_IS_CN": "true"
+      }
+    }
+  }
+}
+```
+
+> 全球区用户：不设置 `GARMIN_IS_CN` 或设为 `false`，行为与原版完全一致。
+
+---
 
 This Model Context Protocol (MCP) server connects to Garmin Connect and exposes your fitness and health data to Claude and other MCP-compatible clients.
 
