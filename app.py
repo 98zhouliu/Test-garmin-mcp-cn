@@ -29,8 +29,17 @@ def text_tool_result(text: str):
     }
 
 
-def json_text(data):
-    return text_tool_result(json.dumps(data, ensure_ascii=False, indent=2, default=str))
+def json_text(data, max_chars: int | None = None):
+    text = json.dumps(data, ensure_ascii=False, indent=2, default=str)
+
+    if max_chars and len(text) > max_chars:
+        text = (
+            text[:max_chars]
+            + "\n\n...内容过长，已截断。"
+            + f"\n原始字符数约：{len(text)}，当前返回前 {max_chars} 字符。"
+        )
+
+    return text_tool_result(text)
 
 
 def get_garmin_client():
@@ -101,13 +110,60 @@ def list_tools():
         },
         {
             "name": "get_activity_detail",
-            "description": "根据 activity_id 获取某次 Garmin 运动详情。",
+            "description": "根据 activity_id 获取某次 Garmin 运动摘要详情。",
             "inputSchema": {
                 "type": "object",
                 "properties": {
                     "activity_id": {
                         "type": "integer",
                         "description": "Garmin 活动 ID"
+                    }
+                },
+                "required": ["activity_id"]
+            }
+        },
+        {
+            "name": "get_activity_splits",
+            "description": "根据 activity_id 获取某次 Garmin 活动的 splits / 分段 / 分圈数据。适合分析间歇训练每一组的距离、时间、配速、心率、步频等。",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "activity_id": {
+                        "type": "integer",
+                        "description": "Garmin 活动 ID"
+                    }
+                },
+                "required": ["activity_id"]
+            }
+        },
+        {
+            "name": "get_activity_laps",
+            "description": "根据 activity_id 尝试获取某次 Garmin 活动的 laps / 圈数据。不同 Garmin API 版本可能返回不同结构。",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "activity_id": {
+                        "type": "integer",
+                        "description": "Garmin 活动 ID"
+                    }
+                },
+                "required": ["activity_id"]
+            }
+        },
+        {
+            "name": "get_activity_details_raw",
+            "description": "根据 activity_id 获取某次 Garmin 活动的原始详情 / 曲线数据。可能包含 GPS、速度、心率、步频、功率等高频数据，数据量较大。",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "activity_id": {
+                        "type": "integer",
+                        "description": "Garmin 活动 ID"
+                    },
+                    "max_chars": {
+                        "type": "integer",
+                        "description": "最大返回字符数，默认 120000。数据太大时会截断，避免 Claude 或 Vercel 超限。",
+                        "default": 120000
                     }
                 },
                 "required": ["activity_id"]
@@ -261,6 +317,58 @@ def call_tool(name: str, arguments: dict):
         activity_id = int(arguments["activity_id"])
         detail = client.get_activity(activity_id)
         return json_text(detail)
+
+    if name == "get_activity_splits":
+        activity_id = int(arguments["activity_id"])
+        result = call_first_available(
+            client,
+            [
+                "get_activity_splits",
+                "get_activity_split_summaries",
+                "get_splits"
+            ],
+            activity_id
+        )
+        return json_text({
+            "activity_id": activity_id,
+            "activity_splits": result
+        })
+
+    if name == "get_activity_laps":
+        activity_id = int(arguments["activity_id"])
+        result = call_first_available(
+            client,
+            [
+                "get_activity_laps",
+                "get_laps",
+                "get_activity_lap_splits"
+            ],
+            activity_id
+        )
+        return json_text({
+            "activity_id": activity_id,
+            "activity_laps": result
+        })
+
+    if name == "get_activity_details_raw":
+        activity_id = int(arguments["activity_id"])
+        max_chars = int(arguments.get("max_chars", 120000))
+
+        result = call_first_available(
+            client,
+            [
+                "get_activity_details",
+                "get_activity_details_data",
+                "get_activity_detail_raw",
+                "get_activity_charts"
+            ],
+            activity_id
+        )
+
+        return json_text({
+            "activity_id": activity_id,
+            "raw_details": result
+        }, max_chars=max_chars)
 
     if name == "get_sleep_data":
         target_date = arguments.get("date") or today_string()
@@ -425,7 +533,7 @@ def handle_rpc(request_data: dict):
                 },
                 "serverInfo": {
                     "name": SERVER_NAME,
-                    "version": "0.2.0"
+                    "version": "0.3.0"
                 }
             }
         }
@@ -533,6 +641,6 @@ async def home():
     return {
         "status": "ok",
         "name": SERVER_NAME,
-        "version": "0.2.0",
+        "version": "0.3.0",
         "message": "Garmin CN MCP server is running"
     }
