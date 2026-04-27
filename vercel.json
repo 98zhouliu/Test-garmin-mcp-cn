@@ -1,13 +1,7 @@
 {
   "functions": {
-    "api/mcp.py": {
+    "api/*.py": {
       "maxDuration": 60
     }
-  },
-  "routes": [
-    {
-      "src": "/api/mcp",
-      "dest": "/api/mcp.py"
-    }
-  ]
+  }
 }
